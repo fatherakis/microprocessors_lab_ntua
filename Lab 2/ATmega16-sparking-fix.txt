@@ -1,0 +1,58 @@
+ASSEMBLY:
+
+ISR0:
+  push r27
+  push r24
+  push r25
+
+  ldi r27,(0<<INF0) ;Set only INT0 0
+  out GIFR, r27
+
+  ldi r24,low(5000)
+  ldi r25,high(5000)
+  rcall wait_msec  ;wait 5ms
+
+  in r27,GIFR
+  andi r27,0x40 ;keep INT0 bit
+  cpi r27,0x40 ;this only checks INT0  (if we wanted to check INT1 we would cpi r27,0x80)
+  breq loop  ;jump to loop if GIFR says interrupt 0 is active
+  no_loop:
+
+  . . .
+
+  pop r27
+  pop r24
+  pop r25
+  reti
+
+  loop: ldi r27,0x00
+  out GIFR,r27        ;set interrupt 0
+  ldi r24,low(5000)
+  ldi r25,high(5000)
+  rcall wait_msec     ;wait 5 ms if interrupt state changes
+  in r27,GIFR
+  andi r27,0x40 ;keep INT0 bit
+  cpi r27,0x40
+  brne no_loop ;this only checks INT0(if we wanted for INT1 we would check 0x80)
+  rjmp loop
+
+C:
+
+
+#include <until/delay.h>
+
+ISR(INT0_vector){
+  spark = 0x00;
+  GIFR = spark;   //set all interrupts to 0
+  _delay_ms(5);  //wait 5ms
+  spark=GIFR;
+  while( (spark & 0x40) != 0x00 ){  // this checks only INT0 interrupts (if we wanted INT1 we would loop the 0x80 bit)
+    spark = 0x00;
+    GIFR = spark;
+    _delay_ms(5);  //set interrupts to 0 and wait again
+    spark=GIFR;
+  }               //infinite loop until there are no interrupts active
+
+  . . .
+
+}
