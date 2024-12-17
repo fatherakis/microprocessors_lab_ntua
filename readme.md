@@ -1,4 +1,4 @@
-## Microprocessors Lab - NTUA Class 2021-2022
+## Microprocessors Lab - NTUA Course 2021-2022
 
 This course was laboratory exclusive. In total there are 5 Lab exercises with their complete codes and questions.
 
